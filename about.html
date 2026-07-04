@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>关于我们 - 线条小狗IP乐园</title>
+  <link rel="stylesheet" href="./css/global.css">
+  <style>
+    .about-wrap {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 40px 24px 60px;
+    }
+    .about-hero {
+      text-align: center;
+      padding: 40px 20px;
+      background: linear-gradient(135deg, var(--primary-light), #fff);
+      border-radius: var(--radius);
+      margin-bottom: 40px;
+      box-shadow: var(--shadow);
+    }
+    .about-hero h1 {
+      font-size: 36px;
+      color: var(--primary-dark);
+      margin-bottom: 16px;
+    }
+    .about-hero p {
+      font-size: 16px;
+      color: var(--text-light);
+      line-height: 1.8;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .about-hero .mascot {
+      font-size: 80px;
+      margin-bottom: 16px;
+      animation: bounce 2s ease-in-out infinite;
+    }
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    .section-card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 30px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow);
+    }
+    .section-card h2 {
+      color: var(--primary-dark);
+      font-size: 22px;
+      margin-bottom: 16px;
+      padding-left: 16px;
+      border-left: 4px solid var(--primary);
+    }
+    .section-card p {
+      color: var(--text);
+      line-height: 2;
+      font-size: 15px;
+    }
+    .tech-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+    .tech-item {
+      padding: 20px;
+      background: var(--primary-light);
+      border-radius: var(--radius-sm);
+      text-align: center;
+      transition: var(--transition);
+    }
+    .tech-item:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-hover);
+    }
+    .tech-icon {
+      font-size: 36px;
+      margin-bottom: 8px;
+    }
+    .tech-name {
+      font-weight: 600;
+      color: var(--text);
+      font-size: 15px;
+    }
+    .tech-desc {
+      font-size: 12px;
+      color: var(--text-light);
+      margin-top: 4px;
+    }
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+    .feature-item {
+      padding: 20px;
+      border: 2px solid var(--primary-light);
+      border-radius: var(--radius-sm);
+      transition: var(--transition);
+    }
+    .feature-item:hover {
+      border-color: var(--primary);
+      transform: translateY(-4px);
+    }
+    .feature-icon {
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+    .feature-item h3 {
+      font-size: 16px;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+    .feature-item p {
+      font-size: 13px;
+      color: var(--text-light);
+      line-height: 1.6;
+    }
+    .ip-showcase {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-top: 16px;
+    }
+    .ip-card {
+      text-align: center;
+      padding: 24px 16px;
+      border-radius: var(--radius);
+      transition: var(--transition);
+      cursor: pointer;
+    }
+    .ip-card:hover {
+      transform: translateY(-6px);
+    }
+    .ip-emoji {
+      font-size: 48px;
+      margin-bottom: 12px;
+    }
+    .ip-card h3 {
+      font-size: 18px;
+      margin-bottom: 8px;
+      color: #fff;
+    }
+    .ip-card p {
+      font-size: 13px;
+      color: rgba(255,255,255,0.9);
+      line-height: 1.5;
+    }
+    .ip-maltese { background: linear-gradient(135deg, #FFD966, #FFB300); }
+    .ip-genshin { background: linear-gradient(135deg, #4B6BFB, #283593); }
+    .ip-loving { background: linear-gradient(135deg, #A88BEB, #7B1FA2); }
+    .ip-honor { background: linear-gradient(135deg, #FFB347, #E65100); }
+    .ip-capybara { background: linear-gradient(135deg, #A0826D, #6D5D4D); }
+    .ip-butterbear { background: linear-gradient(135deg, #FFE4B5, #D4A574); }
+    .ip-strawberrybear { background: linear-gradient(135deg, #FF6B9D, #E84A7F); }
+    .ip-labubu { background: linear-gradient(135deg, #26A69A, #1A7A6E); }
+    .ip-pikachu { background: linear-gradient(135deg, #FFDD00, #D4A600); }
+    .ip-hellokitty { background: linear-gradient(135deg, #FF69B4, #E8488F); }
+
+    .timeline {
+      position: relative;
+      padding-left: 40px;
+      margin-top: 20px;
+    }
+    .timeline::before {
+      content: "";
+      position: absolute;
+      left: 15px;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: var(--primary-light);
+      border-radius: 2px;
+    }
+    .timeline-item {
+      position: relative;
+      margin-bottom: 24px;
+      padding: 16px 20px;
+      background: var(--primary-light);
+      border-radius: var(--radius-sm);
+    }
+    .timeline-item::before {
+      content: "";
+      position: absolute;
+      left: -32px;
+      top: 20px;
+      width: 16px;
+      height: 16px;
+      background: var(--primary);
+      border-radius: 50%;
+      border: 3px solid #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+    .timeline-date {
+      font-size: 13px;
+      color: var(--primary-dark);
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .timeline-content {
+      font-size: 14px;
+      color: var(--text);
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div :class="['theme-maltese', { 'dark-mode': isDark }]" style="display: contents;">
+
+  <!-- 顶部导航栏 -->
+  <nav class="top-nav">
+    <h2>🐕 线条小狗IP乐园</h2>
+    <div class="menu-toggle">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+    <div class="nav-links">
+      <a href="index.html" class="nav-a">首页</a>
+      <a href="login.html" class="nav-a">登录</a>
+      <a href="calendar.html" class="nav-a">活动日历</a>
+      <a href="about.html" class="nav-a active">关于我们</a>
+
+      <!-- 移动端菜单底部按钮 -->
+      <div class="mobile-menu-btns">
+        <div class="mobile-menu-btn" @click="toggleDarkMode" :title="isDark ? '切换浅色模式' : '切换暗色模式'">
+          {{ isDark ? '☀️' : '🌙' }}
+        </div>
+        <div class="mobile-menu-btn" @click="toggleMusic" :title="isMusicPlaying ? '暂停音乐' : '播放音乐'">
+          {{ isMusicPlaying ? '🔊' : '🔇' }}
+        </div>
+      </div>
+
+      <!-- 暗色模式切换按钮 -->
+      <div class="dark-toggle" @click="toggleDarkMode" :title="isDark ? '切换浅色模式' : '切换暗色模式'">
+        {{ isDark ? '☀️' : '🌙' }}
+      </div>
+
+      <!-- 音频喇叭 -->
+      <div 
+        class="audio-box" 
+        :class="{ playing: isMusicPlaying }"
+        @click="toggleMusic"
+        :title="isMusicPlaying ? '暂停音乐' : '播放音乐'"
+      >
+        {{ isMusicPlaying ? '🔊' : '🔇' }}
+        <div class="sound-wave"></div>
+      </div>
+      <audio id="bgm" src="./audio/bgm.mp3" loop></audio>
+    </div>
+  </nav>
+
+  <div class="about-wrap">
+    <div class="about-hero">
+      <div class="mascot">🐕</div>
+      <h1>关于线条小狗IP乐园</h1>
+      <p>
+        一个以「线条小狗」为核心IP的互动乐园，汇聚多个热门IP，<br>
+        打造属于你的专属IP收藏树。每一个果子，都是一份热爱。
+      </p>
+    </div>
+
+    <div class="section-card">
+      <h2>🌟 项目简介</h2>
+      <p>
+        「线条小狗IP乐园」是一个以IP文化为主题的Web前端作品，将可爱的线条小狗作为贯穿全站的核心IP，
+        同时支持原神、恋与深空、王者荣耀等多个热门IP的切换与浏览。网站创新性地采用了"大树果子"的
+        交互形式——每一个IP都是一颗果子，你可以将喜欢的果子"种"到自己的树上，打造专属的IP收藏。
+      </p>
+      <p style="margin-top: 12px;">
+        本站为Web前端课程期末设计作品，运用了HTML5、CSS3、JavaScript以及Vue2框架等技术，
+        实现了响应式布局、多主题换肤、拖拽交互、表单验证、倒计时等丰富的功能。
+      </p>
+    </div>
+
+    <div class="section-card">
+      <h2>🎨 我们的IP家族</h2>
+      <div class="ip-showcase">
+        <div class="ip-card ip-maltese">
+          <div class="ip-emoji">🐕</div>
+          <h3>线条小狗</h3>
+          <p>治愈系顶流IP，温暖你的每一天</p>
+        </div>
+        <div class="ip-card ip-genshin">
+          <div class="ip-emoji">⚔️</div>
+          <h3>原神</h3>
+          <p>跨越尘世的探索之旅</p>
+        </div>
+        <div class="ip-card ip-loving">
+          <div class="ip-emoji">💕</div>
+          <h3>恋与深空</h3>
+          <p>心动不止，浪漫永不落幕</p>
+        </div>
+        <div class="ip-card ip-honor">
+          <div class="ip-emoji">👑</div>
+          <h3>王者荣耀</h3>
+          <p>王者峡谷，五杀超神</p>
+        </div>
+        <div class="ip-card ip-capybara">
+          <div class="ip-emoji">🦫</div>
+          <h3>水豚噜噜</h3>
+          <p>佛系呆萌，治愈emo时刻</p>
+        </div>
+        <div class="ip-card ip-butterbear">
+          <div class="ip-emoji">🧈</div>
+          <h3>黄油小熊</h3>
+          <p>软萌黄油，甜进心里</p>
+        </div>
+        <div class="ip-card ip-strawberrybear">
+          <div class="ip-emoji">🍓</div>
+          <h3>草莓熊</h3>
+          <p>甜甜草莓，可爱满分</p>
+        </div>
+        <div class="ip-card ip-labubu">
+          <div class="ip-emoji">👾</div>
+          <h3>拉布布</h3>
+          <p>搞怪精灵，潮流玩偶</p>
+        </div>
+        <div class="ip-card ip-pikachu">
+          <div class="ip-emoji">⚡</div>
+          <h3>皮卡丘</h3>
+          <p>电系人气王，永远经典</p>
+        </div>
+        <div class="ip-card ip-hellokitty">
+          <div class="ip-emoji">🎀</div>
+          <h3>凯蒂猫</h3>
+          <p>甜美少女心，永恒经典</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <h2>✨ 核心特色</h2>
+      <div class="feature-grid">
+        <div class="feature-item">
+          <div class="feature-icon">🌳</div>
+          <h3>果子树收藏</h3>
+          <p>拖拽果子到大树上收藏，打造你的专属IP树</p>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">🎨</div>
+          <h3>多主题IP</h3>
+          <p>切换IP即切换主题内容，沉浸式浏览体验</p>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">📱</div>
+          <h3>响应式布局</h3>
+          <p>完美适配桌面、平板、手机等各种设备</p>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">🎵</div>
+          <h3>背景音乐</h3>
+          <p>沉浸式音乐体验，浏览更有氛围</p>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">📅</div>
+          <h3>活动日历</h3>
+          <p>不错过任何一个IP的精彩活动</p>
+        </div>
+        <div class="feature-item">
+          <div class="feature-icon">👤</div>
+          <h3>账号系统</h3>
+          <p>注册登录，保存你的专属收藏</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <h2>🛠️ 技术栈</h2>
+      <div class="tech-list">
+        <div class="tech-item">
+          <div class="tech-icon">📄</div>
+          <div class="tech-name">HTML5</div>
+          <div class="tech-desc">语义化标签结构</div>
+        </div>
+        <div class="tech-item">
+          <div class="tech-icon">🎨</div>
+          <div class="tech-name">CSS3</div>
+          <div class="tech-desc">动画/弹性布局/变量</div>
+        </div>
+        <div class="tech-item">
+          <div class="tech-icon">⚡</div>
+          <div class="tech-name">JavaScript</div>
+          <div class="tech-desc">交互逻辑/表单验证</div>
+        </div>
+        <div class="tech-item">
+          <div class="tech-icon">💚</div>
+          <div class="tech-name">Vue 2</div>
+          <div class="tech-desc">数据驱动视图</div>
+        </div>
+        <div class="tech-item">
+          <div class="tech-icon">📦</div>
+          <div class="tech-name">LocalStorage</div>
+          <div class="tech-desc">本地数据存储</div>
+        </div>
+        <div class="tech-item">
+          <div class="tech-icon">🎯</div>
+          <div class="tech-name">Drag & Drop</div>
+          <div class="tech-desc">拖拽交互API</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <h2>📖 开发历程</h2>
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="timeline-date">第一阶段：需求分析</div>
+          <div class="timeline-content">确定网站主题为IP乐园，构思"大树果子"的核心交互，梳理功能模块和页面结构。</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-date">第二阶段：视觉设计</div>
+          <div class="timeline-content">设计整体视觉风格，确定色彩体系，绘制CSS大树与果子样式，设计响应式布局。</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-date">第三阶段：功能开发</div>
+          <div class="timeline-content">实现多IP切换、拖拽收藏、登录注册、活动日历、表单验证等核心功能。</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-date">第四阶段：优化完善</div>
+          <div class="timeline-content">优化动画效果、提升交互体验、修复问题、完善文档，确保网站稳定运行。</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <h2>💌 写在最后</h2>
+      <p>
+        这个网站是我对Web前端技术的一次综合实践。从构思到实现，每一行代码都倾注了用心。
+        希望这个充满治愈感的IP乐园，能给每一位来访的朋友带来快乐和温暖。
+      </p>
+      <p style="margin-top: 12px; text-align: right; color: var(--primary-dark); font-weight: 600;">
+        —— 2026年夏
+      </p>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <p>© 2026 线条小狗IP乐园 | 用心打造每一个IP世界</p>
+    <p style="margin-top: 8px; font-size: 12px;">
+      本站为Web前端期末设计作品 | 使用 Vue2 + CSS3 + JavaScript 构建
+    </p>
+  </footer>
+
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+  <script src="./js/data.js"></script>
+  <script src="./js/app.js"></script>
+  <script>
+    new Vue({
+      el: "#app",
+      data() {
+        return {
+          isDark: false,
+          isMusicPlaying: false
+        }
+      },
+      methods: {
+        toggleDarkMode() {
+          this.isDark = !this.isDark;
+          document.body.classList.toggle('dark-mode', this.isDark);
+          localStorage.setItem('darkMode', this.isDark ? '1' : '0');
+        },
+        toggleMusic() {
+          const bgm = document.getElementById('bgm');
+          if (!bgm) return;
+          if (this.isMusicPlaying) {
+            bgm.pause();
+            this.isMusicPlaying = false;
+          } else {
+            bgm.volume = 0.5;
+            bgm.play().then(() => {
+              this.isMusicPlaying = true;
+            }).catch(() => {});
+          }
+        },
+        loadDarkMode() {
+          const saved = localStorage.getItem('darkMode');
+          if (saved === '1') {
+            this.isDark = true;
+            document.body.classList.add('dark-mode');
+          }
+        }
+      },
+      mounted() {
+        this.loadDarkMode();
+      }
+    });
+  </script>
+</body>
+</html>

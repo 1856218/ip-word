@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>注册 - 线条小狗IP乐园</title>
+  <!-- 全局独立CSS -->
+  <link rel="stylesheet" href="./css/global.css">
+  <!-- 页面嵌入式CSS -->
+  <style>
+    /* 注册页特有样式补充 */
+    .login-card {
+      min-height: 520px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .login-subtitle {
+      text-align: center;
+      color: var(--text-light);
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+
+    .strength-label {
+      font-size: 12px;
+      color: var(--text-light);
+      margin-top: 4px;
+      display: flex;
+      justify-content: space-between;
+    }
+  </style>
+<base target="_blank">
+</head>
+<body>
+  <!-- 返回首页 -->
+  <div class="back-home">
+    <a href="index.html">← 返回首页</a>
+  </div>
+
+  <!-- 注册容器 -->
+  <div class="login-wrap">
+    <div class="login-card">
+      <h2 class="login-title">📝 账号注册</h2>
+      <p class="login-subtitle">创建账号，开启IP探索之旅</p>
+
+      <!-- 账号输入 -->
+      <div class="form-group">
+        <input 
+          type="text" 
+          id="reg-acc" 
+          class="form-input" 
+          placeholder="设置账号（6-16位字母数字）"
+          autocomplete="username"
+        >
+        <div class="input-hint">账号格式错误</div>
+      </div>
+
+      <!-- 密码输入 -->
+      <div class="form-group">
+        <input 
+          type="password" 
+          id="reg-pwd" 
+          class="form-input" 
+          placeholder="设置密码（至少6位）"
+          autocomplete="new-password"
+        >
+        <div class="input-hint">密码格式错误</div>
+        <!-- 密码强度条 -->
+        <div class="strength-bar">
+          <div class="strength-bar-fill"></div>
+        </div>
+        <div class="strength-label">
+          <span>密码强度</span>
+          <span id="strength-text">请输入密码</span>
+        </div>
+      </div>
+
+      <!-- 确认密码 -->
+      <div class="form-group">
+        <input 
+          type="password" 
+          id="reg-pwd2" 
+          class="form-input" 
+          placeholder="再次输入密码"
+          autocomplete="new-password"
+        >
+        <div class="input-hint">两次密码不一致</div>
+      </div>
+
+      <!-- 注册按钮 -->
+      <button class="btn" onclick="regCheck()">完成注册</button>
+
+      <!-- 跳转登录超链接 -->
+      <div class="link-reg">
+        已有账号？<a href="login.html">返回登录 →</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 加载交互工具js -->
+  <script src="./js/app.js"></script>
+
+  <!-- 注册页特有逻辑 -->
+  <script>
+    // 密码强度实时显示
+    document.addEventListener('DOMContentLoaded', function() {
+      const pwdInput = document.getElementById('reg-pwd');
+      const strengthText = document.getElementById('strength-text');
+
+      if (pwdInput) {
+        pwdInput.addEventListener('input', function() {
+          const val = this.value;
+          const bar = document.querySelector('.strength-bar-fill');
+
+          if (val.length === 0) {
+            bar.className = 'strength-bar-fill';
+            strengthText.textContent = '请输入密码';
+            return;
+          }
+
+          let strength = 0;
+          if (val.length >= 6) strength++;
+          if (val.length >= 10) strength++;
+          if (/[a-z]/.test(val) && /[A-Z]/.test(val)) strength++;
+          if (/\d/.test(val)) strength++;
+          if (/[^a-zA-Z0-9]/.test(val)) strength++;
+
+          bar.className = 'strength-bar-fill';
+
+          if (strength <= 2) {
+            bar.classList.add('weak');
+            strengthText.textContent = '弱';
+            strengthText.style.color = '#e74c3c';
+          } else if (strength <= 4) {
+            bar.classList.add('medium');
+            strengthText.textContent = '中';
+            strengthText.style.color = '#f39c12';
+          } else {
+            bar.classList.add('strong');
+            strengthText.textContent = '强';
+            strengthText.style.color = '#2ecc71';
+          }
+        });
+      }
+    });
+  </script>
+</body>
+</html>

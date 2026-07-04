@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>线条小狗IP乐园 - 首页</title>
+  <!-- 全局独立CSS -->
+  <link rel="stylesheet" href="./css/global.css">
+  <!-- Vue2 CDN引入 -->
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+  <!-- 页面嵌入式CSS -->
+  <style>
+    /* 首页特有样式 */
+    .welcome-msg {
+      text-align: center;
+      padding: 20px;
+      background: var(--primary-light);
+      border-radius: var(--radius);
+      margin-bottom: 20px;
+      font-size: 15px;
+      color: var(--text);
+    }
+    .welcome-msg strong {
+      color: var(--primary-dark);
+    }
+
+    /* 资讯为空提示 */
+    .empty-tip {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-light);
+    }
+    .empty-tip .icon {
+      font-size: 60px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+  </style>
+</head>
+<!-- v-bind动态绑定body主题class，从data.js读取theme -->
+<body>
+  <!-- Vue挂载根节点 -->
+  <div id="app">
+    <!-- 动态绑定body主题class -->
+    <div :class="[currentTheme, { 'dark-mode': isDark }]" style="display: contents;">
+
+  <!-- 顶部导航栏（子绝父相喇叭） -->
+  <nav class="top-nav">
+    <h2>🐕 线条小狗IP乐园</h2>
+
+    <!-- 移动端菜单按钮 -->
+    <div class="menu-toggle">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+
+    <!-- 导航链接容器 -->
+      <div class="nav-links">
+        <a href="index.html" class="nav-a active">首页</a>
+        <template v-if="isLoggedIn">
+          <a href="#" class="nav-a user-nav" @click.prevent="toggleUserMenu">
+            👤 {{ username }}
+          </a>
+        </template>
+        <template v-else>
+          <a href="login.html" class="nav-a">登录</a>
+        </template>
+        <a href="calendar.html" class="nav-a">活动日历</a>
+        <a href="about.html" class="nav-a">关于我们</a>
+
+      <!-- 移动端菜单底部按钮 -->
+      <div class="mobile-menu-btns">
+        <div class="mobile-menu-btn" @click="toggleDarkMode" :title="isDark ? '切换浅色模式' : '切换暗色模式'">
+          {{ isDark ? '☀️' : '🌙' }}
+        </div>
+        <div class="mobile-menu-btn" @click="toggleMusic" :title="isMusicPlaying ? '暂停音乐' : '播放音乐'">
+          {{ isMusicPlaying ? '🔊' : '🔇' }}
+        </div>
+      </div>
+
+      <!-- 暗色模式切换按钮（子绝父相中的子绝） -->
+      <div class="dark-toggle" @click="toggleDarkMode" :title="isDark ? '切换浅色模式' : '切换暗色模式'">
+        {{ isDark ? '☀️' : '🌙' }}
+      </div>
+
+      <!-- 音频喇叭（子绝父相中的子绝） -->
+      <div 
+        class="audio-box" 
+        :class="{ playing: isMusicPlaying }"
+        @click="toggleMusic"
+        :title="isMusicPlaying ? '暂停音乐' : '播放音乐'"
+      >
+        {{ isMusicPlaying ? '🔊' : '🔇' }}
+        <div class="sound-wave"></div>
+      </div>
+      <audio id="bgm" src="./audio/bgm.mp3" loop></audio>
+    </div>
+  </nav>
+
+  <!-- 用户下拉菜单 -->
+  <div class="user-menu" v-if="showUserMenu" @click.self="showUserMenu = false">
+    <div class="user-menu-item" @click="showUserMenu = false">👤 查看个人信息</div>
+    <div class="user-menu-item" @click="openCardBook">📜 我的卡片册</div>
+    <div class="user-menu-item logout-item" @click="logout">🚪 退出登录</div>
+  </div>
+
+      <!-- 登录欢迎语（仅登录后显示） -->
+      <div v-if="isLoggedIn" class="welcome-msg">
+        👋 欢迎回来，<strong>{{ username }}</strong>！当前浏览的是 <strong>{{ currentIpInfo.name }}</strong> 专区
+      </div>
+
+      <!-- 左中右弹性布局 -->
+      <div class="wrap">
+        <!-- 左侧IP果子列表 Vue v-for循环遍历data.js全部IP -->
+        <aside class="left-bar">
+          <h3>🍎 IP果子商店</h3>
+          <p style="font-size: 13px; color: var(--text-light); margin-bottom: 16px;">
+            拖拽果子到大树上收藏 ✨
+          </p>
+          <div class="ip-list">
+            <!-- Object.keys遍历ipData所有键，取出每个IP对象 -->
+            <div 
+              v-for="ipKey in ipKeys" 
+              :key="ipKey" 
+              class="ip-fruit" 
+              :class="{ 
+                active: currentIp === ipKey,
+                saved: isFruitSaved(ipKey)
+              }"
+              @click="switchIp(ipKey)"
+              draggable="true"
+              @dragstart="onFruitDragStart($event, ipKey, 'list')"
+              @dragend="onFruitDragEnd"
+              :title="isFruitSaved(ipKey) ? '已收藏，点击切换' : '拖拽到树上收藏，点击切换'"
+            >
+              <span class="fruit-icon">{{ ipData[ipKey].icon }}</span>
+              <span class="fruit-name">{{ ipData[ipKey].name }}</span>
+              <span class="saved-badge" v-if="isFruitSaved(ipKey)">✓</span>
+            </div>
+          </div>
+
+          <div style="margin-top: 20px; padding-top: 16px; border-top: 2px solid var(--primary-light);">
+            <h4 style="font-size: 15px; margin-bottom: 12px; color: var(--text);">📊 收藏统计</h4>
+            <p style="font-size: 14px; color: var(--text-light); line-height: 1.8;">
+              已收藏：<strong style="color: var(--primary-dark);">{{ savedFruits.length }}</strong> / {{ ipKeys.length }} 个
+            </p>
+            <div style="height: 8px; background: var(--primary-light); border-radius: 4px; margin-top: 8px; overflow: hidden;">
+              <div 
+                style="height: 100%; background: var(--primary); border-radius: 4px; transition: width 0.5s ease;"
+                :style="{ width: (savedFruits.length / ipKeys.length * 100) + '%' }"
+              ></div>
+            </div>
+          </div>
+        </aside>
+
+        <!-- 中间大树主体 -->
+        <main class="center-main">
+          <!-- IP专属横幅图：读取data.js中banner字段 -->
+          <div class="banner-section">
+            <img 
+              class="banner-img" 
+              :src="currentIpInfo.banner" 
+              :alt="currentIpInfo.name + '横幅'"
+              @error="handleImgError"
+            >
+            <div class="banner-overlay">
+              <h1>{{ currentIpInfo.name }}</h1>
+              <p>{{ currentIpInfo.description }}</p>
+            </div>
+          </div>
+
+          <!-- 大树果子展示区 - 子绝父相（果子相对于树冠绝对定位） -->
+          <div 
+            class="tree-box" 
+            :class="{ 'drag-over': isDragOver }"
+            @dragover.prevent="onTreeDragOver"
+            @dragleave="onTreeDragLeave"
+            @drop.prevent="onTreeDrop"
+          >
+            <!-- 太阳装饰 -->
+            <div class="tree-sun"></div>
+            <!-- 云朵装饰 -->
+            <div class="tree-cloud tree-cloud-1"></div>
+            <div class="tree-cloud tree-cloud-2"></div>
+
+            <!-- 新手引导气泡 -->
+            <div class="newbie-guide" v-if="showNewbieGuide">
+              <div class="guide-bubble">
+                👆 试试拖拽左侧果子到树上收藏吧！
+                <span class="guide-close" @click="closeNewbieGuide">×</span>
+              </div>
+            </div>
+
+            <!-- 区域标题 -->
+            <div class="tree-header">
+              <h2>🌳 我的IP果子树</h2>
+              <p>拖拽左侧果子到树上收藏，点击果子切换主题</p>
+            </div>
+
+            <!-- 大树主体 - 父相（果子的定位参照） -->
+            <div class="big-tree">
+              <!-- 可爱装饰 - 蝴蝶 -->
+              <div class="tree-butterfly butterfly-1">
+                <div class="wing wing-left"></div>
+                <div class="wing wing-right"></div>
+              </div>
+              <div class="tree-butterfly butterfly-2">
+                <div class="wing wing-left"></div>
+                <div class="wing wing-right"></div>
+              </div>
+
+              <!-- 树干 -->
+              <div class="tree-trunk">
+                <div class="tree-branch branch-1"></div>
+                <div class="tree-branch branch-2"></div>
+                <div class="tree-branch branch-3"></div>
+                <div class="tree-branch branch-4"></div>
+              </div>
+
+              <!-- 树冠 - 子绝父相的"父相"，果子相对于这里定位 -->
+              <div class="tree-crown">
+                <div class="crown-layer crown-1"></div>
+                <div class="crown-layer crown-2"></div>
+                <div class="crown-layer crown-3"></div>
+                <div class="crown-layer crown-4"></div>
+                <div class="crown-layer crown-5"></div>
+                <div class="crown-layer crown-6"></div>
+                <div class="crown-layer crown-7"></div>
+
+                <!-- 可爱装饰 - 小花 -->
+                <div class="tree-flower flower-1">
+                  <div class="flower-petal petal-1"></div>
+                  <div class="flower-petal petal-2"></div>
+                  <div class="flower-petal petal-3"></div>
+                  <div class="flower-petal petal-4"></div>
+                  <div class="flower-petal petal-5"></div>
+                  <div class="flower-center"></div>
+                </div>
+                <div class="tree-flower flower-2">
+                  <div class="flower-petal petal-1"></div>
+                  <div class="flower-petal petal-2"></div>
+                  <div class="flower-petal petal-3"></div>
+                  <div class="flower-petal petal-4"></div>
+                  <div class="flower-petal petal-5"></div>
+                  <div class="flower-center"></div>
+                </div>
+                <div class="tree-flower flower-3">
+                  <div class="flower-petal petal-1"></div>
+                  <div class="flower-petal petal-2"></div>
+                  <div class="flower-petal petal-3"></div>
+                  <div class="flower-petal petal-4"></div>
+                  <div class="flower-petal petal-5"></div>
+                  <div class="flower-center"></div>
+                </div>
+                <div class="tree-flower flower-4">
+                  <div class="flower-petal petal-1"></div>
+                  <div class="flower-petal petal-2"></div>
+                  <div class="flower-petal petal-3"></div>
+                  <div class="flower-petal petal-4"></div>
+                  <div class="flower-petal petal-5"></div>
+                  <div class="flower-center"></div>
+                </div>
+
+                <!-- 树上的收藏果子 - 子绝（绝对定位在树冠上） -->
+                <div
+                  v-for="(fruit, index) in savedFruits"
+                  :key="'saved-' + fruit.ipKey + '-' + index"
+                  class="tree-fruit"
+                  :class="[
+                    'fruit-' + fruit.ipKey,
+                    'fruit-pos-' + (index + 1),
+                    { active: currentIp === fruit.ipKey }
+                  ]"
+                  @click="switchIp(fruit.ipKey)"
+                  @dblclick="removeFruitConfirm(fruit.ipKey)"
+                  draggable="true"
+                  @dragstart="onFruitDragStart($event, fruit.ipKey, 'tree')"
+                  @dragend="onFruitDragEnd"
+                  :title="'点击切换到' + ipData[fruit.ipKey].name + '，双击可移除'"
+                >
+                  {{ ipData[fruit.ipKey].icon }}
+                </div>
+              </div>
+            </div>
+
+            <!-- 拖放提示 -->
+            <div class="tree-drop-hint" :class="{ show: isDragOver }">
+              🍎 松手就把果子种到树上啦！
+            </div>
+
+            <!-- 未登录提示 -->
+            <div class="tree-login-tip" v-if="!isLoggedIn">
+              <a href="login.html">登录</a> 后可以收藏专属果子哦~
+            </div>
+
+            <!-- 草地装饰 - 线条小狗（左侧：骑车送花小白） -->
+            <img 
+              class="tree-dog tree-dog-left" 
+              src="images/dog-left.png" 
+              alt="线条小狗"
+              onerror="this.style.display='none'"
+            >
+            <!-- 草地装饰 - 线条小狗（右侧：气球棉花糖两只） -->
+            <img 
+              class="tree-dog tree-dog-right" 
+              src="images/dog-right.png" 
+              alt="线条小狗"
+              onerror="this.style.display='none'"
+            >
+          </div>
+
+          <!-- 资讯列表标题 -->
+          <div class="section-header">
+            <h3>📰 当前IP资讯</h3>
+            <span style="color: var(--text-light); font-size: 14px;">
+              共 {{ currentIpInfo.articles.length }} 条
+            </span>
+          </div>
+
+          <!-- 资讯卡片网格 -->
+          <transition-group name="list" tag="div" class="article-list-wrap">
+            <!-- v-for渲染当前IP的文章列表，读取cover封面图片 -->
+            <div 
+              v-for="article in currentIpInfo.articles" 
+              :key="article.id" 
+              class="article-card"
+              @click="openArticle(article)"
+            >
+              <!-- 动态渲染文章封面图 article.cover -->
+              <div class="article-cover-wrap">
+                <img 
+                  class="article-cover" 
+                  :src="article.cover" 
+                  :alt="article.title"
+                  @error="handleImgError"
+                  loading="lazy"
+                >
+                <span class="article-badge">{{ article.tag || '资讯' }}</span>
+              </div>
+              <div class="article-body">
+                <h3>{{ article.title }}</h3>
+                <div class="article-meta">
+                  <span>📅 {{ article.date }}</span>
+                  <span>👁 {{ formatViews(article.views) }}</span>
+                </div>
+              </div>
+            </div>
+          </transition-group>
+
+          <!-- 空状态 -->
+          <div v-if="currentIpInfo.articles.length === 0" class="empty-tip">
+            <div class="icon">📭</div>
+            <p>暂无资讯，敬请期待~</p>
+          </div>
+        </main>
+
+        <!-- 右侧活动倒计时 -->
+        <aside class="right-bar">
+          <div class="countdown-card">
+            <h3>⏰ {{ currentIpInfo.name }} 专属活动</h3>
+            <div class="countdown-grid">
+              <div class="countdown-item">
+                <span class="number" id="cd-days">00</span>
+                <span class="label">天</span>
+              </div>
+              <div class="countdown-item">
+                <span class="number" id="cd-hours">00</span>
+                <span class="label">时</span>
+              </div>
+              <div class="countdown-item">
+                <span class="number" id="cd-mins">00</span>
+                <span class="label">分</span>
+              </div>
+              <div class="countdown-item">
+                <span class="number" id="cd-secs">00</span>
+                <span class="label">秒</span>
+              </div>
+            </div>
+            <div class="countdown-status" id="cd-status">
+              加载中...
+            </div>
+          </div>
+
+          <div class="tip-card">
+            <h4>💡 操作提示</h4>
+            <p>
+              点击左侧果子切换不同IP主题，体验专属配色与内容。<br><br>
+              点击资讯卡片可查看详情。<br><br>
+              点击顶部喇叭可控制背景音乐。
+            </p>
+          </div>
+
+          <!-- 盲盒抽卡 -->
+          <div class="tip-card">
+            <h4>🎰 IP盲盒</h4>
+            <p style="margin-bottom: 12px;">试试手气，随机抽一个IP角色！</p>
+            <button class="gacha-btn" @click="openGacha">🎰 抽一次盲盒</button>
+          </div>
+
+          <!-- 成就徽章 -->
+          <div class="tip-card" v-if="achievements.length > 0">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <h4>🏆 我的成就</h4>
+              <button 
+                class="reset-achieve-btn" 
+                @click="resetAchievements" 
+                title="重置所有成就"
+              >
+                🔄 重置
+              </button>
+            </div>
+            <div style="margin-top: 8px;">
+              <span 
+                v-for="ach in achievements" 
+                :key="ach.id"
+                class="achievement-badge"
+                :class="ach.unlocked ? 'badge-unlocked' : 'badge-locked'"
+              >
+                {{ ach.icon }} {{ ach.name }}
+              </span>
+            </div>
+          </div>
+
+          <!-- 我的卡片册子入口 -->
+          <div class="tip-card card-book-entry" @click="openCardBook" v-if="gachaHistory.length > 0">
+            <div class="book-cover">
+              <div class="book-spine"></div>
+              <div class="book-front">
+                <span class="book-icon">🎴</span>
+                <h4>我的卡片册</h4>
+                <p>共 {{ gachaHistory.length }} 张</p>
+                <span class="book-hint">点击翻开 →</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="tip-card" v-if="isLoggedIn">
+            <h4>👤 我的信息</h4>
+            <p>
+              用户名：{{ username }}<br>
+              登录时间：{{ loginTime }}<br><br>
+              <a href="#" @click.prevent="logout" style="color: var(--primary-dark);">退出登录</a>
+            </p>
+          </div>
+        </aside>
+      </div>
+
+      <!-- 底部跑马灯 -->
+      <div class="marquee">
+        <div class="marquee-track">
+          <div class="marquee-text" v-for="n in 4" :key="n">
+            🐕 线条小狗全新联名上线 | ⚔️ 原神5.0版本即将开放 | 💕 恋与深空周年庆典 | 👑 王者荣耀S38赛季 | 🎁 登录账号领取专属福利 | 🎉 夏季活动火热进行中
+          </div>
+        </div>
+      </div>
+
+      <!-- 页脚 -->
+      <footer class="site-footer">
+        <p> 2026 线条小狗IP乐园 | 用心打造每一个IP世界</p>
+        <p style="margin-top: 8px; font-size: 12px;">
+          本站为Web前端期末设计作品 | 使用 Vue2 + CSS3 + JavaScript 构建
+        </p>
+      </footer>
+
+      <!-- 文章详情弹窗 -->
+      <div 
+        class="modal-overlay" 
+        :class="{ active: selectedArticle }" 
+        @click.self="closeArticle"
+        v-if="selectedArticle"
+      >
+        <div class="modal-content">
+          <div class="modal-header">
+            <img :src="selectedArticle.cover" :alt="selectedArticle.title" @error="handleImgError">
+            <button class="modal-close" @click="closeArticle">&times;</button>
+          </div>
+          <div class="modal-body">
+            <span class="article-badge" style="position: static; display: inline-block; margin-bottom: 12px;">
+              {{ selectedArticle.tag || '资讯' }}
+            </span>
+            <h2>{{ selectedArticle.title }}</h2>
+            <div class="meta">
+              <span>📅 {{ selectedArticle.date }}</span>
+              <span>👁 {{ formatViews(selectedArticle.views) }} 次浏览</span>
+              <span>🏷️ {{ currentIpInfo.name }}</span>
+            </div>
+            <div class="article-content" v-if="selectedArticle.content" v-html="selectedArticle.content"></div>
+            <div v-else>
+              <p>{{ selectedArticle.summary || '精彩内容，敬请期待...' }}</p>
+              <p style="margin-top: 16px; color: var(--text-light);">
+                这里是文章的详细内容展示区域。在实际项目中，这里会显示完整的文章内容、相关图片和评论互动等功能。
+                本次期末设计作品展示了数据驱动渲染、主题换肤、响应式布局等前端核心技术。
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 盲盒抽卡弹窗 -->
+      <div class="gacha-overlay" v-if="showGacha" @click.self="closeGacha">
+        <div class="gacha-card-wrap">
+          <div class="gacha-card" :class="{ flipped: gachaFlipped }" @click="flipGacha">
+            <!-- 卡片正面（未翻转） -->
+            <div class="gacha-card-front">
+              <div class="gacha-question">❓</div>
+              <p>点击翻转揭晓</p>
+            </div>
+            <!-- 卡片背面（翻转后） -->
+            <div class="gacha-card-back" v-if="gachaResult" :class="'card-rarity-' + gachaResult.rarity">
+              <div class="gacha-card-image">
+                <img :src="gachaResult.cardImage" :alt="gachaResult.name" @error="gachaImgError($event)">
+              </div>
+              <div class="gacha-ip-name">{{ gachaResult.name }}</div>
+              <span class="gacha-rarity" :class="'gacha-rarity-' + gachaResult.rarity">
+                {{ gachaResult.rarityText }}
+              </span>
+              <div class="gacha-desc">{{ gachaResult.desc }}</div>
+              <button class="gacha-close-btn" @click.stop="closeGacha">收下啦~</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 成就提示弹窗 -->
+      <div class="achievement-toast" v-if="showAchievement">
+        <span class="achieve-icon">{{ showAchievement.icon }}</span>
+        <div class="achieve-info">
+          <h4>{{ showAchievement.name }}</h4>
+          <p>{{ showAchievement.desc }}</p>
+        </div>
+      </div>
+
+      <!-- 卡片详情弹窗 -->
+      <div class="card-detail-overlay" v-if="showCardDetail" @click.self="closeCardDetail">
+        <div class="card-detail-wrap">
+          <div class="gacha-card-back card-detail-card" :class="'card-rarity-' + detailCard.rarity">
+            <div class="gacha-card-image">
+              <img :src="detailCard.cardImage" :alt="detailCard.name" @error="detailImgError($event)">
+            </div>
+            <div class="gacha-ip-name">{{ detailCard.name }}</div>
+            <span class="gacha-rarity" :class="'gacha-rarity-' + detailCard.rarity">
+              {{ detailCard.rarityText }}
+            </span>
+            <div class="gacha-desc">{{ detailCard.desc }}</div>
+            <button class="gacha-close-btn" @click.stop="closeCardDetail">关闭</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 卡片册子弹窗 -->
+      <div class="card-book-overlay" v-if="showCardBook" @click.self="closeCardBook">
+        <div class="card-book-container">
+          <div class="card-book-header">
+            <h3>📖 我的卡片册</h3>
+            <span class="card-book-count">共 {{ gachaHistory.length }} 张卡片</span>
+            <button class="card-book-close" @click="closeCardBook">×</button>
+          </div>
+          <div class="card-book-grid" v-if="gachaHistory.length > 0">
+            <div 
+              v-for="(card, index) in gachaHistory.slice().reverse()" 
+              :key="index"
+              class="book-card"
+              :class="'book-card-' + card.rarity"
+              @click="openCardDetail(card)"
+            >
+              <button class="book-card-delete" @click.stop="deleteCard(gachaHistory.length - 1 - index)" title="删除卡片">×</button>
+              <div class="book-card-image">
+                <img :src="ipData[card.ipKey].cardImages[card.rarity]" :alt="ipData[card.ipKey].name" @error="bookCardImgError($event, card.ipKey)">
+              </div>
+              <div class="book-card-info">
+                <span class="book-card-name">{{ ipData[card.ipKey].name }}</span>
+                <span class="book-card-rarity" :class="'rarity-text-' + card.rarity">{{ rarityEmoji(card.rarity) }} {{ rarityText(card.rarity) }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="card-book-empty" v-else>
+            <p>📭 卡片册还是空的，去抽卡收集卡片吧~</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 先加载数据源data.js -->
+  <script src="./js/data.js"></script>
+  <!-- 加载交互工具js -->
+  <script src="./js/app.js"></script>
+
+  <!-- Vue实例：完整读取data.js数据，实现动态切换、渲染资讯 -->
+  <script>
+    new Vue({
+      el: "#app",
+      data() {
+        return {
+          // 全局引入data.js里的ipData
+          ipData: ipData,
+          // 存储所有IP的key
+          ipKeys: Object.keys(ipData),
+          // 当前选中的IP标识，默认线条小狗
+          currentIp: "maltese",
+          // 选中的文章（用于弹窗）
+          selectedArticle: null,
+          // 登录状态
+          isLoggedIn: false,
+          username: '',
+          showUserMenu: false,
+          loginTime: '',
+          // 收藏的果子列表
+          savedFruits: [],
+          // 拖拽状态
+          isDragOver: false,
+          dragData: null,
+          // 暗色模式
+          isDark: false,
+          // 音乐播放状态
+          isMusicPlaying: false,
+          // 盲盒抽卡
+          showGacha: false,
+          gachaFlipped: false,
+          gachaResult: null,
+          gachaHistory: [],
+          // 卡片详情弹窗
+          showCardDetail: false,
+          detailCard: null,
+          // 卡片册子弹窗
+          showCardBook: false,
+          // 新手引导
+          showNewbieGuide: false,
+          // 成就系统
+          showAchievement: null,
+          achievements: [],
+          achievementDefs: [
+            { id: 'first_visit', name: '初来乍到', icon: '👋', desc: '首次访问IP乐园', check: function() { return true; } },
+            { id: 'first_save', name: '种下希望', icon: '🌱', desc: '收藏第一个果子', check: null },
+            { id: 'collector_5', name: '收藏达人', icon: '💎', desc: '收藏5个IP果子', check: null },
+            { id: 'collector_10', name: '果园大亨', icon: '👑', desc: '收藏全部10个IP果子', check: null },
+            { id: 'gacha_first', name: '初次抽卡', icon: '🎰', desc: '首次抽盲盒', check: null },
+            { id: 'gacha_5', name: '抽卡上瘾', icon: '🎯', desc: '累计抽5次盲盒', check: null },
+            { id: 'dark_mode', name: '夜间模式', icon: '🌙', desc: '切换到暗色模式', check: null },
+            { id: 'ip_explorer', name: 'IP探险家', icon: '🧭', desc: '浏览过所有IP', check: null }
+          ]
+        }
+      },
+      computed: {
+        // 计算属性：获取当前选中IP完整数据（name/theme/articles）
+        currentIpInfo() {
+          return this.ipData[this.currentIp];
+        },
+        // 计算属性：动态绑定body主题class，实现换肤
+        currentTheme() {
+          return this.currentIpInfo.theme;
+        }
+      },
+      methods: {
+        // 切换IP，修改当前IP并更新URL参数（无刷新）
+        switchIp(ipKey) {
+          this.currentIp = ipKey;
+          // 使用history API代替location.href，避免页面刷新
+          const url = new URL(window.location);
+          url.searchParams.set('ip', ipKey);
+          window.history.pushState({ ip: ipKey }, '', url);
+          // 重新初始化倒计时
+          this.initCountdown();
+          // 播放切换音效
+          this.playSwitchSound(ipKey);
+          // 记录浏览的IP（成就系统）
+          this.recordIpVisit(ipKey);
+          // 滚动到顶部
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        },
+
+        // 播放IP切换音效（Web Audio API合成不同音调）
+        playSwitchSound(ipKey) {
+          try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            // 每个IP对应不同音调频率
+            const freqMap = {
+              maltese: 523.25,       // C5
+              genshin: 587.33,       // D5
+              loving: 659.25,        // E5
+              honor: 698.46,         // F5
+              capybara: 783.99,      // G5
+              butterbear: 880.00,    // A5
+              strawberrybear: 987.77, // B5
+              labubu: 1046.50,       // C6
+              pikachu: 1174.66,      // D6
+              hellokitty: 1318.51    // E6
+            };
+            const freq = freqMap[ipKey] || 523.25;
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(freq * 1.5, ctx.currentTime + 0.08);
+            osc.frequency.exponentialRampToValueAtTime(freq, ctx.currentTime + 0.15);
+            gain.gain.setValueAtTime(0.3, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(ctx.currentTime);
+            osc.stop(ctx.currentTime + 0.3);
+          } catch(e) {
+            // 浏览器不支持Web Audio API则静默
+          }
+        },
+
+        // 暗色模式切换
+        toggleDarkMode() {
+          this.isDark = !this.isDark;
+          document.body.classList.toggle('dark-mode', this.isDark);
+          localStorage.setItem('darkMode', this.isDark ? '1' : '0');
+          // 检查暗色模式成就
+          if (this.isDark) this.checkAchievement('dark_mode');
+        },
+
+        // 音乐开关
+        toggleMusic() {
+          const bgm = document.getElementById('bgm');
+          if (!bgm) return;
+          if (this.isMusicPlaying) {
+            bgm.pause();
+            this.isMusicPlaying = false;
+          } else {
+            bgm.volume = 0.5;
+            bgm.play().then(() => {
+              this.isMusicPlaying = true;
+            }).catch(() => {
+              // 自动播放被阻止时的处理
+              alert('🎵 音乐已准备好，再点一次播放~');
+            });
+          }
+        },
+
+        // 加载暗色模式偏好
+        loadDarkMode() {
+          const saved = localStorage.getItem('darkMode');
+          if (saved === '1') {
+            this.isDark = true;
+            document.body.classList.add('dark-mode');
+          }
+        },
+
+        // 检查某个IP是否已收藏
+        isFruitSaved(ipKey) {
+          return this.savedFruits.some(f => f.ipKey === ipKey);
+        },
+
+        // 关闭新手引导
+        closeNewbieGuide() {
+          this.showNewbieGuide = false;
+          localStorage.setItem('newbieGuideClosed', '1');
+        },
+
+        // 保存果子到树上
+        saveFruit(ipKey) {
+          if (this.isFruitSaved(ipKey)) return false;
+          if (this.savedFruits.length >= 10) {
+            alert('🌳 树上最多只能挂10个果子哦！先移除一个吧~');
+            return false;
+          }
+          this.savedFruits.push({ ipKey: ipKey, savedAt: new Date().toISOString() });
+          this.saveFruitsToStorage();
+          // 收藏后隐藏新手引导
+          if (this.showNewbieGuide) {
+            this.closeNewbieGuide();
+          }
+          // 检查收藏成就
+          this.checkCollectionAchievements();
+          return true;
+        },
+
+        // 从树上移除果子
+        removeFruit(ipKey) {
+          const index = this.savedFruits.findIndex(f => f.ipKey === ipKey);
+          if (index > -1) {
+            this.savedFruits.splice(index, 1);
+            this.saveFruitsToStorage();
+            return true;
+          }
+          return false;
+        },
+
+        // 确认移除果子
+        removeFruitConfirm(ipKey) {
+          if (confirm('确定要把' + this.ipData[ipKey].name + '从树上摘下来吗？')) {
+            this.removeFruit(ipKey);
+          }
+        },
+
+        // ========== 盲盒抽卡 ==========
+        openGacha() {
+          // 随机选一个IP
+          const keys = this.ipKeys;
+          const randomKey = keys[Math.floor(Math.random() * keys.length)];
+          const ip = this.ipData[randomKey];
+
+          // 随机稀有度（普通60%/稀有30%/传说10%）
+          const rand = Math.random();
+          let rarity, rarityText;
+          if (rand < 0.1) {
+            rarity = 'legendary';
+            rarityText = '✨ 传说 ✨';
+          } else if (rand < 0.4) {
+            rarity = 'rare';
+            rarityText = '💎 稀有';
+          } else {
+            rarity = 'normal';
+            rarityText = '⭐ 普通';
+          }
+
+          this.gachaResult = {
+            ipKey: randomKey,
+            name: ip.name,
+            icon: ip.icon,
+            cardImage: ip.cardImages[rarity],  // 根据稀有度取对应图片
+            desc: ip.description,
+            rarity: rarity,
+            rarityText: rarityText
+          };
+          this.gachaFlipped = false;
+          this.showGacha = true;
+        },
+
+        flipGacha() {
+          if (!this.gachaFlipped) {
+            this.gachaFlipped = true;
+            // 翻转时播放音效
+            this.playSwitchSound(this.gachaResult.ipKey);
+          }
+        },
+
+        closeGacha() {
+          if (this.gachaResult) {
+            this.gachaHistory.push({
+              ipKey: this.gachaResult.ipKey,
+              rarity: this.gachaResult.rarity,
+              time: new Date().toISOString()
+            });
+            localStorage.setItem('gachaHistory', JSON.stringify(this.gachaHistory));
+            this.checkGachaAchievements();
+          }
+          this.showGacha = false;
+          this.gachaFlipped = false;
+          this.gachaResult = null;
+        },
+
+        checkGachaAchievements() {
+          if (this.gachaHistory.length >= 1) this.checkAchievement('gacha_first');
+          if (this.gachaHistory.length >= 5) this.checkAchievement('gacha_5');
+        },
+
+        gachaImgError(e) {
+          e.target.style.display = 'none';
+          e.target.parentElement.innerHTML = '<div class="gacha-emoji-fallback">' + this.gachaResult.icon + '</div>';
+        },
+
+        rarityText(rarity) {
+          const map = { normal: '普通', rare: '稀有', legendary: '传说' };
+          return map[rarity] || rarity;
+        },
+
+        rarityEmoji(rarity) {
+          const map = { normal: '⭐', rare: '💎', legendary: '✨' };
+          return map[rarity] || '⭐';
+        },
+
+        // 打开卡片详情
+        openCardDetail(card) {
+          const ip = this.ipData[card.ipKey];
+          if (!ip) return;
+          this.detailCard = {
+            ipKey: card.ipKey,
+            name: ip.name,
+            icon: ip.icon,
+            cardImage: ip.cardImages[card.rarity],
+            desc: ip.description,
+            rarity: card.rarity,
+            rarityText: this.rarityText(card.rarity)
+          };
+          this.showCardDetail = true;
+          document.body.style.overflow = 'hidden';
+        },
+
+        closeCardDetail() {
+          this.showCardDetail = false;
+          this.detailCard = null;
+          document.body.style.overflow = '';
+        },
+
+        // 打开卡片册子
+        openCardBook() {
+          this.showCardBook = true;
+          document.body.style.overflow = 'hidden';
+        },
+
+        // 关闭卡片册子
+        closeCardBook() {
+          this.showCardBook = false;
+          document.body.style.overflow = '';
+        },
+
+        // 删除卡片
+        deleteCard(index) {
+          if (confirm('确定要把这张卡片从册子里删除吗？')) {
+            this.gachaHistory.splice(index, 1);
+            localStorage.setItem('gachaHistory', JSON.stringify(this.gachaHistory));
+            if (this.gachaHistory.length === 0) {
+              this.closeCardBook();
+            }
+          }
+        },
+
+        // 册子内卡片图片加载失败
+        bookCardImgError(e, ipKey) {
+          e.target.style.display = 'none';
+          e.target.parentElement.innerHTML = '<span class="img-fallback">' + this.ipData[ipKey].icon + '</span>';
+        },
+
+        detailImgError(e) {
+          e.target.style.display = 'none';
+          e.target.parentElement.innerHTML = '<div class="gacha-emoji-fallback">' + this.detailCard.icon + '</div>';
+        },
+
+        // ========== 成就系统 ==========
+        loadAchievements() {
+          const saved = localStorage.getItem('achievements');
+          if (saved) {
+            const unlockedIds = JSON.parse(saved);
+            this.achievements = this.achievementDefs.map(def => ({
+              ...def,
+              unlocked: unlockedIds.includes(def.id)
+            }));
+          } else {
+            this.achievements = this.achievementDefs.map(def => ({
+              ...def,
+              unlocked: false
+            }));
+            // 首次访问成就
+            this.checkAchievement('first_visit');
+          }
+        },
+
+        checkAchievement(achId) {
+          const ach = this.achievements.find(a => a.id === achId);
+          if (ach && !ach.unlocked) {
+            ach.unlocked = true;
+            // 保存到localStorage
+            const unlockedIds = this.achievements.filter(a => a.unlocked).map(a => a.id);
+            localStorage.setItem('achievements', JSON.stringify(unlockedIds));
+            // 显示提示
+            this.showAchievement = { icon: ach.icon, name: ach.name, desc: ach.desc };
+            setTimeout(() => {
+              this.showAchievement = null;
+            }, 4000);
+            // 播放成就音效
+            try {
+              const ctx = new (window.AudioContext || window.webkitAudioContext)();
+              const osc = ctx.createOscillator();
+              const gain = ctx.createGain();
+              osc.type = 'triangle';
+              osc.frequency.setValueAtTime(880, ctx.currentTime);
+              osc.frequency.setValueAtTime(1100, ctx.currentTime + 0.1);
+              osc.frequency.setValueAtTime(1320, ctx.currentTime + 0.2);
+              gain.gain.setValueAtTime(0.2, ctx.currentTime);
+              gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+              osc.connect(gain);
+              gain.connect(ctx.destination);
+              osc.start(ctx.currentTime);
+              osc.stop(ctx.currentTime + 0.5);
+            } catch(e) {}
+          }
+        },
+
+        // 检查收藏相关成就
+        checkCollectionAchievements() {
+          if (this.savedFruits.length >= 1) this.checkAchievement('first_save');
+          if (this.savedFruits.length >= 5) this.checkAchievement('collector_5');
+          if (this.savedFruits.length >= 10) this.checkAchievement('collector_10');
+        },
+
+        // 检查IP浏览成就
+        checkIpExplorerAchievement() {
+          const visited = localStorage.getItem('visitedIps');
+          if (visited) {
+            const ips = JSON.parse(visited);
+            if (ips.length >= this.ipKeys.length) {
+              this.checkAchievement('ip_explorer');
+            }
+          }
+        },
+
+        // 重置所有成就
+        resetAchievements() {
+          if (confirm('确定要重置所有成就吗？所有成就将回到未解锁状态。')) {
+            localStorage.removeItem('achievements');
+            this.achievements = this.achievementDefs.map(def => ({
+              ...def,
+              unlocked: false
+            }));
+          }
+        },
+
+        // 记录浏览过的IP
+        recordIpVisit(ipKey) {
+          let visited = [];
+          try { visited = JSON.parse(localStorage.getItem('visitedIps') || '[]'); } catch(e) {}
+          if (!visited.includes(ipKey)) {
+            visited.push(ipKey);
+            localStorage.setItem('visitedIps', JSON.stringify(visited));
+          }
+          this.checkIpExplorerAchievement();
+        },
+
+        // 保存果子数据到localStorage
+        saveFruitsToStorage() {
+          const storageKey = this.isLoggedIn 
+            ? 'savedFruits_' + this.username 
+            : 'savedFruits_guest';
+          localStorage.setItem(storageKey, JSON.stringify(this.savedFruits));
+        },
+
+        // 从localStorage加载果子
+        loadFruitsFromStorage() {
+          const storageKey = this.isLoggedIn 
+            ? 'savedFruits_' + this.username 
+            : 'savedFruits_guest';
+          const saved = localStorage.getItem(storageKey);
+          if (saved) {
+            try {
+              this.savedFruits = JSON.parse(saved);
+            } catch(e) {
+              this.savedFruits = [];
+            }
+          } else {
+            // 默认收藏线条小狗
+            this.savedFruits = [{ ipKey: 'maltese', savedAt: new Date().toISOString() }];
+          }
+        },
+
+        // 拖拽开始
+        onFruitDragStart(e, ipKey, source) {
+          this.dragData = { ipKey, source };
+          e.dataTransfer.effectAllowed = 'move';
+          e.dataTransfer.setData('text/plain', ipKey);
+          // 添加拖拽样式
+          setTimeout(() => {
+            e.target.classList.add('dragging');
+          }, 0);
+        },
+
+        // 拖拽结束
+        onFruitDragEnd(e) {
+          e.target.classList.remove('dragging');
+          this.isDragOver = false;
+          this.dragData = null;
+        },
+
+        // 拖拽经过大树
+        onTreeDragOver(e) {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+          if (!this.isDragOver) {
+            this.isDragOver = true;
+          }
+        },
+
+        // 拖拽离开大树
+        onTreeDragLeave(e) {
+          // 只有真正离开大树区域才重置
+          const rect = e.currentTarget.getBoundingClientRect();
+          const x = e.clientX;
+          const y = e.clientY;
+          if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) {
+            this.isDragOver = false;
+          }
+        },
+
+        // 放置到大树上
+        onTreeDrop(e) {
+          e.preventDefault();
+          this.isDragOver = false;
+
+          if (!this.dragData) return;
+
+          const { ipKey, source } = this.dragData;
+
+          if (source === 'list') {
+            // 从列表拖到树上 - 收藏
+            if (this.saveFruit(ipKey)) {
+              console.log('[果子] 已收藏:', ipKey);
+            }
+          } else if (source === 'tree') {
+            // 从树上拖到树外（通过拖到其他区域）- 这里暂时不处理移除
+          }
+        },
+
+        // 页面加载读取URL参数，恢复上次选中IP
+        getUrlIp() {
+          const params = new URLSearchParams(window.location.search);
+          const urlIp = params.get('ip');
+          // 判断URL传参的IP是否存在，存在则赋值
+          if (urlIp && this.ipKeys.includes(urlIp)) {
+            this.currentIp = urlIp;
+          }
+        },
+
+        // 打开文章详情
+        openArticle(article) {
+          this.selectedArticle = article;
+          document.body.style.overflow = 'hidden';
+        },
+
+        // 关闭文章详情
+        closeArticle() {
+          this.selectedArticle = null;
+          document.body.style.overflow = '';
+        },
+
+        // 图片错误处理
+        handleImgError(e) {
+          e.target.style.display = 'none';
+          const parent = e.target.parentElement;
+          if (parent) {
+            parent.style.background = 'linear-gradient(135deg, var(--primary-light), var(--primary))';
+            parent.style.display = 'flex';
+            parent.style.alignItems = 'center';
+            parent.style.justifyContent = 'center';
+            if (!parent.querySelector('.img-fallback')) {
+              const fallback = document.createElement('span');
+              fallback.className = 'img-fallback';
+              fallback.textContent = '🖼️';
+              fallback.style.cssText = 'font-size:40px;opacity:0.5;';
+              parent.appendChild(fallback);
+            }
+          }
+        },
+
+        // 格式化浏览量
+        formatViews(num) {
+          if (!num) return '0';
+          if (num >= 10000) {
+            return (num / 10000).toFixed(1) + '万';
+          }
+          return num.toLocaleString();
+        },
+
+        // 初始化倒计时
+        initCountdown() {
+          // 先销毁旧的倒计时
+          if (window.CountdownTimer) {
+            window.CountdownTimer.destroy();
+          }
+          // 使用app.js中的CountdownTimer
+          if (typeof CountdownTimer !== 'undefined') {
+            CountdownTimer.init(this.currentIpInfo.eventDate);
+          }
+        },
+
+        // 检查登录状态
+        checkLogin() {
+          const loggedIn = sessionStorage.getItem('isLoggedIn');
+          const user = sessionStorage.getItem('username');
+          const time = sessionStorage.getItem('loginTime');
+          if (loggedIn && user) {
+            this.isLoggedIn = true;
+            this.username = user;
+            this.loginTime = time ? new Date(time).toLocaleString() : '未知';
+            // 登录后加载用户专属果子
+            this.loadFruitsFromStorage();
+          }
+        },
+
+        // 退出登录
+        logout() {
+          sessionStorage.removeItem('isLoggedIn');
+          sessionStorage.removeItem('username');
+          sessionStorage.removeItem('loginTime');
+          this.isLoggedIn = false;
+          this.username = '';
+          this.showUserMenu = false;
+          // 退出后切换到游客果子
+          this.loadFruitsFromStorage();
+          alert('已退出登录');
+        },
+
+        // 切换用户菜单显示
+        toggleUserMenu() {
+          this.showUserMenu = !this.showUserMenu;
+        },
+      },
+      mounted() {
+        // 页面挂载完成执行
+        this.loadDarkMode();
+        this.loadFruitsFromStorage();
+        this.loadAchievements();
+
+        // 新手引导：首次访问且未收藏果子时显示
+        const guideClosed = localStorage.getItem('newbieGuideClosed');
+        if (!guideClosed && this.savedFruits.length <= 1) {
+          setTimeout(() => {
+            this.showNewbieGuide = true;
+          }, 1000);
+        }
+        // 加载抽卡历史
+        try {
+          this.gachaHistory = JSON.parse(localStorage.getItem('gachaHistory') || '[]');
+        } catch(e) { this.gachaHistory = []; }
+        this.getUrlIp();
+        this.checkLogin();
+        this.initCountdown();
+
+        // 监听浏览器返回按钮
+        window.addEventListener('popstate', () => {
+          this.getUrlIp();
+          this.initCountdown();
+        });
+
+        // 监听ESC键关闭弹窗
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') {
+            if (this.showCardDetail) {
+              this.closeCardDetail();
+            } else if (this.showCardBook) {
+              this.closeCardBook();
+            } else if (this.selectedArticle) {
+              this.closeArticle();
+            }
+          }
+        });
+      },
+      beforeDestroy() {
+        if (window.CountdownTimer) {
+          window.CountdownTimer.destroy();
+        }
+      }
+    });
+  </script>
+</body>
+</html>
